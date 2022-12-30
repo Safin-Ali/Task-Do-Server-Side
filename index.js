@@ -64,6 +64,18 @@ async function run () {
             res.send(result);
         });
 
+        app.patch('/task-update',async (req,res)=>{
+            const {id,email,updateValue} = req.body;
+            const filter = {_id: ObjectId(id), userEmail: email};
+            const result = await userTask.updateOne(filter,{
+                $set: {taskName: updateValue}
+            });
+            if(result.modifiedCount > 0) {
+                const newData = await userTask.find({userEmail: email,taskStatus: false}).toArray();
+                return res.send({modifiedCount: true,updateData: newData})
+            }
+        });
+
         app.get('/my-task', jwtVerify, async (req,res)=> {
             const filter = {userEmail: req.headers.header,taskStatus: false};
             const result = await userTask.find(filter).toArray();
