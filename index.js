@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 require('dotenv').config();
 const port = process.env.PORT || 5000;
-const {MongoClient,} = require('mongodb');
+const {MongoClient, ObjectId,} = require('mongodb');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
@@ -54,9 +54,18 @@ async function run () {
             const result = await userTask.insertOne({taskName,taskImgURL,userEmail,taskStatus,time: new Date()});
             res.send(result)
         });
+        
+        app.patch('/add-task',async (req,res)=>{
+            const {id,email} = req.body;
+            const filter = {_id: ObjectId(id), userEmail: email};
+            const result = await userTask.updateOne(filter,{
+                $set: {taskStatus: true}
+            });
+            res.send(result);
+        });
 
         app.get('/my-task', jwtVerify, async (req,res)=> {
-            const filter = {userEmail: req.headers.header};
+            const filter = {userEmail: req.headers.header,taskStatus: false};
             const result = await userTask.find(filter).toArray();
             res.send(result);
         });
