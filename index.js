@@ -19,6 +19,7 @@ async function run () {
         const illustrationImgsDB = client.db('illustration-images');
         const avatarImgs = illustrationImgsDB.collection('avatar');
         const userInfo = taskDoDB.collection('user-Info');
+        const userTask = taskDoDB.collection('user-task');
 
         const jwtVerify = (req,res,next) =>{
             if(!req.headers.encryptjwt) return res.status(403).send('Forbidden');
@@ -48,9 +49,17 @@ async function run () {
             res.send(result)
         });
 
-        app.get('/my-task', jwtVerify, (req,res)=> {
-            res.send('now i am my-task');
-        })
+        app.post('/add-task',async (req,res)=>{
+            const {taskName,taskImgURL,userEmail,taskStatus} = req.body;
+            const result = await userTask.insertOne({taskName,taskImgURL,userEmail,taskStatus,time: new Date()});
+            res.send(result)
+        });
+
+        app.get('/my-task', jwtVerify, async (req,res)=> {
+            const filter = {userEmail: req.headers.header};
+            const result = await userTask.find(filter).toArray();
+            res.send(result);
+        });
 
         app.get('/avatar',async (req,res)=>{
             const result = await avatarImgs.findOne({});
